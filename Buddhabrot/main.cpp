@@ -101,9 +101,26 @@ string elapsedTime(nanoseconds elapsedTime) {
 * Main function.
 */
 int main() {
-    cout << "Generating PEM Image, please wait..." << endl;
+    // Define constants for the heatmap generator
+    const ComplexNumber MINIMUM(-2.0, -2.0);
+    const ComplexNumber MAXIMUM(1.0, 2.0);
+    const int IMAGE_HEIGHT = 1024;
+    const int IMAGE_WIDTH = 1024;
+    const int RED_ITERS = 100;
+    const int BLUE_ITERS = 100;
+    const int GREEN_ITERS = 100;
+    const long long int SAMPLE_COUNT = IMAGE_WIDTH * IMAGE_HEIGHT * 1000;
     // Obtain the starting time
+    cout << "Generating PEM Image, please wait..." << endl;
     auto startTime = high_resolution_clock::now();
+    // Open output file stream
+    ofstream imageOut("out.ppm");
+    if (!imageOut) {
+        cout << "Could not open image file for writing!" << endl;
+        cout << "Press ENTER to continue..." << endl;
+        cin.ignore();
+        return EXIT_FAILURE;
+    }
     // Obtain the ending time
     auto endTime = high_resolution_clock::now();
     // Report the time elapsed and image generated message.
