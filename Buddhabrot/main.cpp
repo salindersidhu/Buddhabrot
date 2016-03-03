@@ -4,46 +4,11 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include "ComplexNumber.hpp"
 using namespace std;
 using namespace chrono;
 
 typedef unsigned int UINT;
-
-/*
-* ComplexNumber class represents a complex number and provides functions to
-* compute addition, multiplication and square magnitude of complex numbers.
-*/
-class ComplexNumber {
-public:
-    // Constructor
-    ComplexNumber(double r = 0.0, double i = 0.0) : real(r), imaginary(i) {}
-    ComplexNumber(const ComplexNumber&) = default;
-    // Operation functions
-    ComplexNumber operator*(const ComplexNumber& other) {
-        // (a + bi) * (c + di)
-        return ComplexNumber(real * other.getReal() - imaginary *
-			other.getImaginary(), real * other.getImaginary() +
-			imaginary * other.getReal());
-    }
-    ComplexNumber operator+(const ComplexNumber& other) {
-        // (a + bi) + (c + di)
-        return ComplexNumber(real + other.getReal(),
-			imaginary + other.getImaginary());
-    }
-    // ComplexNumber getter and setter functions
-    double getReal() const {
-        return real;
-    }
-    double getImaginary() const {
-        return imaginary;
-    }
-    double getSQmagnitude() const {
-        return real * real + imaginary * imaginary;
-    }
-private:
-    // ComplexNumber variables
-    double real, imaginary;
-};
 
 /*
 * Utility functions.
@@ -77,15 +42,12 @@ void writePPMHeader(ofstream& imageOut, string id, int colourRange,
     imageOut << colourRange << endl;
 }
 
-int rowFromReal(double real, double minReal, double maxReal, int imageHeight) {
-    return static_cast<int>((real - minReal) * (imageHeight /
-		(maxReal - minReal)));
+int rowFromR(double r, double minR, double maxR, int imageHeight) {
+    return static_cast<int>((r - minR) * (imageHeight / (maxR - minR)));
 }
 
-int columnFromImaginary(double imaginary, double minImaginary,
-	double maxImaginary, int imageWidth) {
-    return static_cast<int>((imaginary - minImaginary) *
-		(imageWidth / (maxImaginary - minImaginary)));
+int colFromI(double i, double minI, double maxI, int imageWidth) {
+    return static_cast<int>((i - minI) * (imageWidth / (maxI - minI)));
 }
 
 int colourFromHeatmap(UINT inputValue, UINT maxHeatmapValue, int maxColour) {
@@ -100,7 +62,7 @@ vector<ComplexNumber> buddhabrotPoints(const ComplexNumber& c, int numIters) {
     vector<ComplexNumber> outputNums;
     outputNums.reserve(numIters);
     // The iteration that generates the points
-    while (n < numIters && z.getSQmagnitude() <= 2.0) {
+    while (n < numIters && z.squareMagnitude() <= 2.0) {
         z = z * z + c;
         ++n;
         outputNums.push_back(z);
@@ -116,69 +78,61 @@ vector<ComplexNumber> buddhabrotPoints(const ComplexNumber& c, int numIters) {
 
 void generateHeatmap(UINT** heatmap, int imageWidth, int imageHeight,
     const ComplexNumber& min, const ComplexNumber& max, int numIters,
-    long long numSamples, UINT& maxHeatmapValue, string consoleMessagePrefix) {
+    long long numSamples, UINT& maxHeatmapValue) {
     // Configure the random number generator, seed and uniform distributions
-    mt19937 randomNumGenerator;
-    uniform_real_distribution<double> realDistribution(min.getReal(),
-		max.getReal());
-    uniform_real_distribution<double> imaginaryDistribution(min.getImaginary(),
-		max.getImaginary());
-    randomNumGenerator.seed(high_resolution_clock::now().time_since_epoch().
-		count());
+    mt19937 rng;
+    uniform_real_distribution<double> rDistribution(min.r(), max.r());
+    uniform_real_distribution<double> iDistribution(min.i(), max.i());
+    rng.seed(high_resolution_clock::now().time_since_epoch().count());
     auto next = high_resolution_clock::now() + seconds(5);
     // Collect numSamples samples where sample is just a random complex number
     for (long long sampleIndex = 0; sampleIndex < numSamples; ++sampleIndex) {
         if (high_resolution_clock::now() > next) {
             next = high_resolution_clock::now() + seconds(30);
-            cout << consoleMessagePrefix << "Samples Taken: " << sampleIndex <<
-				"/" << numSamples << endl;
         }
         // Each sample gets a list of points if it escapes to infinity
-        ComplexNumber sample(realDistribution(randomNumGenerator),
-			imaginaryDistribution(randomNumGenerator));
+        ComplexNumber sample(rDistribution(rng), iDistribution(rng));
         vector<ComplexNumber> pointsList = buddhabrotPoints(sample, numIters);
         for (ComplexNumber& point : pointsList) {
-            if (point.getReal() <= max.getReal() && point.getReal() >=
-				min.getReal() && point.getImaginary() <= max.getImaginary() &&
-                point.getImaginary() >= min.getImaginary()) {
-                int row = rowFromReal(point.getReal(), min.getReal(),
-					max.getReal(), imageHeight);
-                int column = columnFromImaginary(point.getImaginary(),
-					min.getImaginary(), max.getImaginary(), imageWidth);
-                ++heatmap[row][column];
-                if (heatmap[row][column] > maxHeatmapValue) {
-                    maxHeatmapValue = heatmap[row][column];
+            if (point.r() <= max.r() && point.r() >= min.r() &&
+				point.i() <= max.i() && point.i() >= min.i()) {
+                // Obtain the row and column and increment heatmap position
+                int row = rowFromR(point.r(), min.r(), max.r(), imageHeight);
+                int col = colFromI(point.i(), min.i(), max.i(), imageWidth);
+                ++heatmap[row][col];
+                // Record new maximum heatmap value
+                if (heatmap[row][col] > maxHeatmapValue) {
+                    maxHeatmapValue = heatmap[row][col];
                 }
             }
         }
     }
 }
 
-string elapsedTime(nanoseconds elapsedTime) {
+string elapsedTime(nanoseconds time) {
     // Obtain the appropriate time for each unit
-    hours hrs = duration_cast<hours>(elapsedTime);
-    minutes mins = duration_cast<minutes>(elapsedTime - hrs);
-    seconds secs = duration_cast<seconds>(elapsedTime - hrs - mins);
-    milliseconds msecs = duration_cast<milliseconds>
-		(elapsedTime - hrs - mins - secs);
+    hours hrs = duration_cast<hours>(time);
+    minutes mins = duration_cast<minutes>(time - hrs);
+    seconds secs = duration_cast<seconds>(time - hrs - mins);
+    milliseconds ms = duration_cast<milliseconds>(time - hrs - mins - secs);
     // Generate the string representing the output time
-    stringstream outTime("");
+    stringstream timeElapsed("");
     if (hrs.count() > 24) {
-        outTime << hrs.count() / 24 << " Days, " << hrs.count() % 24 <<
+        timeElapsed << hrs.count() / 24 << " Days, " << hrs.count() % 24 <<
 			" Hours, ";
     } else if (hrs.count() > 0) {
-        outTime << hrs.count() << " Hours, ";
+        timeElapsed << hrs.count() << " Hours, ";
     }
     if (mins.count() > 0) {
-        outTime << mins.count() << " Minutes, ";
+        timeElapsed << mins.count() << " Minutes, ";
     }
     if (secs.count() > 0) {
-        outTime << secs.count() << " Seconds, ";
+        timeElapsed << secs.count() << " Seconds, ";
     }
-    if (msecs.count() > 0) {
-        outTime << msecs.count() << " Milliseconds";
+    if (ms.count() > 0) {
+        timeElapsed << ms.count() << " Milliseconds";
     }
-    return outTime.str();
+    return timeElapsed.str();
 }
 
 /*
@@ -188,12 +142,12 @@ int main() {
     // Define constants for the heatmap generator
     const ComplexNumber MINIMUM(-2.0, -2.0);
     const ComplexNumber MAXIMUM(1.0, 2.0);
-    const int IMAGE_HEIGHT = 1024;
-    const int IMAGE_WIDTH = 1024;
-    const int RED_ITERS = 50;
-    const int BLUE_ITERS = 50;
-    const int GREEN_ITERS = 50;
-    const long long int SAMPLE_COUNT = IMAGE_WIDTH * IMAGE_HEIGHT * 30;
+    const int IMAGE_HEIGHT = 512;
+    const int IMAGE_WIDTH = 512;
+    const int RED_ITERS = 200;
+    const int BLUE_ITERS = 200;
+    const int GREEN_ITERS = 200;
+    const long long int SAMPLE_COUNT = IMAGE_WIDTH * IMAGE_HEIGHT * 100;
     // Obtain the starting time
     cout << "Generating PEM Image, please wait..." << endl;
     auto startTime = high_resolution_clock::now();
@@ -205,7 +159,7 @@ int main() {
         cin.ignore();
         return EXIT_FAILURE;
     }
-    // Allocate a heatmap of the size of the image
+    // Allocate a heatmap of the size of the image for each channel
     UINT maxHeatmapValue = 0;
     UINT** red;
     UINT** green;
@@ -213,32 +167,32 @@ int main() {
     allocHeatmap(red, IMAGE_WIDTH, IMAGE_HEIGHT);
     allocHeatmap(green, IMAGE_WIDTH, IMAGE_HEIGHT);
     allocHeatmap(blue, IMAGE_WIDTH, IMAGE_HEIGHT);
-    // Generate the heatmap
+    // Generate the heatmap for each colour channel
     generateHeatmap(red, IMAGE_WIDTH, IMAGE_HEIGHT, MINIMUM, MAXIMUM,
-        RED_ITERS, SAMPLE_COUNT, maxHeatmapValue, "Red Channel: ");
+        RED_ITERS, SAMPLE_COUNT, maxHeatmapValue);
     generateHeatmap(green, IMAGE_WIDTH, IMAGE_HEIGHT, MINIMUM, MAXIMUM,
-        GREEN_ITERS, SAMPLE_COUNT, maxHeatmapValue, "Green Channel: ");
+        GREEN_ITERS, SAMPLE_COUNT, maxHeatmapValue);
     generateHeatmap(blue, IMAGE_WIDTH, IMAGE_HEIGHT, MINIMUM, MAXIMUM,
-        BLUE_ITERS, SAMPLE_COUNT, maxHeatmapValue, "Blue Channel: ");
-    // Scale the heatmap down
+        BLUE_ITERS, SAMPLE_COUNT, maxHeatmapValue);
+    // Scale the heatmap down for each colour channel
     for (int row = 0; row < IMAGE_HEIGHT; ++row) {
-        for (int column = 0; column < IMAGE_WIDTH; ++column) {
-            red[row][column] = colourFromHeatmap(red[row][column],
+        for (int col = 0; col < IMAGE_WIDTH; ++col) {
+            red[row][col] = colourFromHeatmap(red[row][col],
                 maxHeatmapValue, 255);
-            green[row][column] = colourFromHeatmap(green[row][column],
-                maxHeatmapValue, 255);
-            blue[row][column] = colourFromHeatmap(blue[row][column],
-                maxHeatmapValue, 255);
+            green[row][col] = colourFromHeatmap(green[row][col],
+				maxHeatmapValue, 255);
+            blue[row][col] = colourFromHeatmap(blue[row][col],
+				maxHeatmapValue, 255);
         }
     }
     // Write the PPM header
     writePPMHeader(imageOut, "P3", 255, IMAGE_WIDTH, IMAGE_HEIGHT);
     // Write the PPM image from the colour heatmaps
     for (int row = 0; row < IMAGE_HEIGHT; ++row) {
-        for (int column = 0; column < IMAGE_WIDTH; ++column) {
-            imageOut << red[row][column] << " ";
-            imageOut << green[row][column] << " ";
-            imageOut << blue[row][column] << "   ";
+        for (int col = 0; col < IMAGE_WIDTH; ++col) {
+            imageOut << red[row][col] << " ";
+            imageOut << green[row][col] << " ";
+            imageOut << blue[row][col] << "   ";
         }
         imageOut << endl;
     }
