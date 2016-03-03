@@ -109,7 +109,7 @@ void generateHeatmap(UINT** heatmap, int imageWidth, int imageHeight,
     }
 }
 
-string elapsedTime(nanoseconds time) {
+string timeElapsed(nanoseconds time) {
     // Obtain the appropriate time for each unit
     hours hrs = duration_cast<hours>(time);
     minutes mins = duration_cast<minutes>(time - hrs);
@@ -135,24 +135,88 @@ string elapsedTime(nanoseconds time) {
     return timeElapsed.str();
 }
 
+void strFromUserInput(string& var) {
+    string input;
+    getline(cin, input);
+    if (!input.empty()) {
+        istringstream stream(input);
+        stream >> var;
+    }
+}
+
+void intFromUserInput(int& var) {
+    string input;
+    getline(cin, input);
+    if (!input.empty()) {
+        istringstream stream(input);
+        stream >> var;
+    }
+}
+
+void doubleFromUserInput(double& var) {
+    string input;
+    getline(cin, input);
+    if (!input.empty()) {
+        istringstream stream(input);
+        stream >> var;
+    }
+}
+
 /*
 * Main function.
 */
 int main() {
+    // Define default values for each variables
+    double minR = -2.0;
+    double minI = -2.0;
+    double maxR = 1.0;
+    double maxI = 2.0;
+    int imageHeight = 512;
+    int imageWidth = 512;
+    int redIters = 100;
+    int greenIters = 100;
+    int blueIters = 100;
+    int samps = 100;
+	string filename = "out.ppm";
+    // Prompt the user to configure the variables
+    cout << "Welcome to the Buddhabrot Fractal Image Generator" << endl;
+    cout << "=================================================" << endl;
+    cout << "Please set image attributes (ENTER for default)" << endl;
+    cout << "HEIGHT (default 512): ";
+    intFromUserInput(imageHeight);
+    cout << "WIDTH (default 512): ";
+    intFromUserInput(imageWidth);
+    cout << "Please set channel iterations (ENTER for default):" << endl;
+    cout << "RED  (default 100): ";
+    intFromUserInput(redIters);
+    cout << "GREEN (default 100): ";
+    intFromUserInput(greenIters);
+    cout << "BLUE (default 100): ";
+    intFromUserInput(blueIters);
+    cout << "Please set complex number viewport (ENTER for default):" << endl;
+    cout << "MIN R (default -2.0): ";
+    doubleFromUserInput(minR);
+    cout << "MIN I (default -2.0): ";
+    doubleFromUserInput(minI);
+    cout << "MAX R (default 1.0): ";
+    doubleFromUserInput(maxR);
+    cout << "MAX I (default 2.0): ";
+    doubleFromUserInput(maxI);
+    cout << "Please set the sample numnber (ENTER for default):" << endl;
+    cout << "SAMPLES (default 100): ";
+    intFromUserInput(samps);
+    cout << "Please set output PEM filename (ENTER for default):" << endl;
+    cout << "FILENAME (default out.ppm): ";
+    strFromUserInput(filename);
     // Define constants for the heatmap generator
-    const ComplexNumber MINIMUM(-2.0, -2.0);
-    const ComplexNumber MAXIMUM(1.0, 2.0);
-    const int IMAGE_HEIGHT = 512;
-    const int IMAGE_WIDTH = 512;
-    const int RED_ITERS = 200;
-    const int BLUE_ITERS = 200;
-    const int GREEN_ITERS = 200;
-    const long long int SAMPLE_COUNT = IMAGE_WIDTH * IMAGE_HEIGHT * 100;
+    const ComplexNumber MINIMUM(minR, minI);
+    const ComplexNumber MAXIMUM(maxR, maxI);
+    const long long int SAMPLE_COUNT = imageWidth * imageHeight * samps;
     // Obtain the starting time
-    cout << "Generating PEM Image, please wait..." << endl;
+    cout << "Generating PPM, this can take a while, please wait..." << endl;
     auto startTime = high_resolution_clock::now();
     // Open output file stream
-    ofstream imageOut("out.ppm");
+    ofstream imageOut(filename);
     if (!imageOut) {
         cout << "Could not open image file for writing!" << endl;
         cout << "Press ENTER to continue..." << endl;
@@ -164,19 +228,19 @@ int main() {
     UINT** red;
     UINT** green;
     UINT** blue;
-    allocHeatmap(red, IMAGE_WIDTH, IMAGE_HEIGHT);
-    allocHeatmap(green, IMAGE_WIDTH, IMAGE_HEIGHT);
-    allocHeatmap(blue, IMAGE_WIDTH, IMAGE_HEIGHT);
+    allocHeatmap(red, imageWidth, imageHeight);
+    allocHeatmap(green, imageWidth, imageHeight);
+    allocHeatmap(blue, imageWidth, imageHeight);
     // Generate the heatmap for each colour channel
-    generateHeatmap(red, IMAGE_WIDTH, IMAGE_HEIGHT, MINIMUM, MAXIMUM,
-        RED_ITERS, SAMPLE_COUNT, maxHeatmapValue);
-    generateHeatmap(green, IMAGE_WIDTH, IMAGE_HEIGHT, MINIMUM, MAXIMUM,
-        GREEN_ITERS, SAMPLE_COUNT, maxHeatmapValue);
-    generateHeatmap(blue, IMAGE_WIDTH, IMAGE_HEIGHT, MINIMUM, MAXIMUM,
-        BLUE_ITERS, SAMPLE_COUNT, maxHeatmapValue);
+    generateHeatmap(red, imageWidth, imageHeight, MINIMUM, MAXIMUM,
+        redIters, SAMPLE_COUNT, maxHeatmapValue);
+    generateHeatmap(green, imageWidth, imageHeight, MINIMUM, MAXIMUM,
+        greenIters, SAMPLE_COUNT, maxHeatmapValue);
+    generateHeatmap(blue, imageWidth, imageHeight, MINIMUM, MAXIMUM,
+        blueIters, SAMPLE_COUNT, maxHeatmapValue);
     // Scale the heatmap down for each colour channel
-    for (int row = 0; row < IMAGE_HEIGHT; ++row) {
-        for (int col = 0; col < IMAGE_WIDTH; ++col) {
+    for (int row = 0; row < imageHeight; ++row) {
+        for (int col = 0; col < imageWidth; ++col) {
             red[row][col] = colourFromHeatmap(red[row][col],
                 maxHeatmapValue, 255);
             green[row][col] = colourFromHeatmap(green[row][col],
@@ -186,10 +250,10 @@ int main() {
         }
     }
     // Write the PPM header
-    writePPMHeader(imageOut, "P3", 255, IMAGE_WIDTH, IMAGE_HEIGHT);
+    writePPMHeader(imageOut, "P3", 255, imageWidth, imageHeight);
     // Write the PPM image from the colour heatmaps
-    for (int row = 0; row < IMAGE_HEIGHT; ++row) {
-        for (int col = 0; col < IMAGE_WIDTH; ++col) {
+    for (int row = 0; row < imageHeight; ++row) {
+        for (int col = 0; col < imageWidth; ++col) {
             imageOut << red[row][col] << " ";
             imageOut << green[row][col] << " ";
             imageOut << blue[row][col] << "   ";
@@ -198,14 +262,14 @@ int main() {
     }
     imageOut.close();
     // Free the colour heatmaps
-    freeHeatmap(red, IMAGE_HEIGHT);
-    freeHeatmap(green, IMAGE_HEIGHT);
-    freeHeatmap(blue, IMAGE_HEIGHT);
+    freeHeatmap(red, imageHeight);
+    freeHeatmap(green, imageHeight);
+    freeHeatmap(blue, imageHeight);
     // Obtain the ending time
     auto endTime = high_resolution_clock::now();
     // Report the time elapsed and image generated message.
-    cout << "Time Elapsed: " << elapsedTime(endTime - startTime) << endl;
-    cout << "PEM image successfully generated. Press ENTER to exit." << endl;
+    cout << "Time Elapsed: " << timeElapsed(endTime - startTime) << endl;
+    cout << "PPM successfully generated. Press ENTER to exit." << endl;
     cin.ignore();
 
     return EXIT_SUCCESS;
