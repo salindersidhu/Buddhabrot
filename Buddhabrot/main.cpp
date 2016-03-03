@@ -78,7 +78,7 @@ vector<ComplexNumber> buddhabrotPoints(const ComplexNumber& c, int numIters) {
 
 void generateHeatmap(UINT** heatmap, int imageWidth, int imageHeight,
     const ComplexNumber& min, const ComplexNumber& max, int numIters,
-    long long numSamples, UINT& maxHeatmapValue) {
+    long long numSamples, UINT& maxHeatmapValue, string channel) {
     // Configure the random number generator, seed and uniform distributions
     mt19937 rng;
     uniform_real_distribution<double> rDistribution(min.r(), max.r());
@@ -89,6 +89,8 @@ void generateHeatmap(UINT** heatmap, int imageWidth, int imageHeight,
     for (long long sampleIndex = 0; sampleIndex < numSamples; ++sampleIndex) {
         if (high_resolution_clock::now() > next) {
             next = high_resolution_clock::now() + seconds(30);
+            cout << channel << "Samples Taken: " << sampleIndex << "/" <<
+				numSamples << endl;
         }
         // Each sample gets a list of points if it escapes to infinity
         ComplexNumber sample(rDistribution(rng), iDistribution(rng));
@@ -135,79 +137,35 @@ string timeElapsed(nanoseconds time) {
     return timeElapsed.str();
 }
 
-void strFromUserInput(string& var) {
+string strFromUserInput(string title, string defaultVal) {
+    cout << title << " [Default = " + defaultVal + "]: ";
     string input;
     getline(cin, input);
     if (!input.empty()) {
-        istringstream stream(input);
-        stream >> var;
+        return input;
     }
-}
-
-void intFromUserInput(int& var) {
-    string input;
-    getline(cin, input);
-    if (!input.empty()) {
-        istringstream stream(input);
-        stream >> var;
-    }
-}
-
-void doubleFromUserInput(double& var) {
-    string input;
-    getline(cin, input);
-    if (!input.empty()) {
-        istringstream stream(input);
-        stream >> var;
-    }
+    return defaultVal;
 }
 
 /*
 * Main function.
 */
 int main() {
-    // Define default values for each variables
-    double minR = -2.0;
-    double minI = -2.0;
-    double maxR = 1.0;
-    double maxI = 2.0;
-    int imageHeight = 512;
-    int imageWidth = 512;
-    int redIters = 100;
-    int greenIters = 100;
-    int blueIters = 100;
-    int samps = 100;
-	string filename = "out.ppm";
     // Prompt the user to configure the variables
     cout << "Welcome to the Buddhabrot Fractal Image Generator" << endl;
     cout << "=================================================" << endl;
-    cout << "Please set image attributes (ENTER for default)" << endl;
-    cout << "HEIGHT (default 512): ";
-    intFromUserInput(imageHeight);
-    cout << "WIDTH (default 512): ";
-    intFromUserInput(imageWidth);
-    cout << "Please set channel iterations (ENTER for default):" << endl;
-    cout << "RED  (default 100): ";
-    intFromUserInput(redIters);
-    cout << "GREEN (default 100): ";
-    intFromUserInput(greenIters);
-    cout << "BLUE (default 100): ";
-    intFromUserInput(blueIters);
-    cout << "Please set complex number viewport (ENTER for default):" << endl;
-    cout << "MIN R (default -2.0): ";
-    doubleFromUserInput(minR);
-    cout << "MIN I (default -2.0): ";
-    doubleFromUserInput(minI);
-    cout << "MAX R (default 1.0): ";
-    doubleFromUserInput(maxR);
-    cout << "MAX I (default 2.0): ";
-    doubleFromUserInput(maxI);
-    cout << "Please set the sample numnber (ENTER for default):" << endl;
-    cout << "SAMPLES (default 100): ";
-    intFromUserInput(samps);
-    cout << "Please set output PEM filename (ENTER for default):" << endl;
-    cout << "FILENAME (default out.ppm): ";
-    strFromUserInput(filename);
+    cout << "Please setup variables (Press ENTER for Default)" << endl;
+    int imageWidth = stoi(strFromUserInput("Image Width", "512"));
+    int imageHeight = stoi(strFromUserInput("Image Height", "512"));
+    int redIters = stoi(strFromUserInput("Red Iterations", "100"));
+    int greenIters = stoi(strFromUserInput("Green Iterations", "100"));
+    int blueIters = stoi(strFromUserInput("Blue Iterations", "100"));
+    double minR = stod(strFromUserInput("Minimum Real", "-2.0"));
+    double minI = stod(strFromUserInput("Minimum Imaginary", "-2.0"));
+    double maxR = stod(strFromUserInput("Maximum Real", "1.0"));
+    double maxI = stod(strFromUserInput("Maximum Imaginary", "2.0"));
+    int samps = stoi(strFromUserInput("Samples", "100"));
+    string filename = strFromUserInput("Filename", "out.ppm");
     // Define constants for the heatmap generator
     const ComplexNumber MINIMUM(minR, minI);
     const ComplexNumber MAXIMUM(maxR, maxI);
@@ -233,11 +191,11 @@ int main() {
     allocHeatmap(blue, imageWidth, imageHeight);
     // Generate the heatmap for each colour channel
     generateHeatmap(red, imageWidth, imageHeight, MINIMUM, MAXIMUM,
-        redIters, SAMPLE_COUNT, maxHeatmapValue);
+        redIters, SAMPLE_COUNT, maxHeatmapValue, "Red Channel: ");
     generateHeatmap(green, imageWidth, imageHeight, MINIMUM, MAXIMUM,
-        greenIters, SAMPLE_COUNT, maxHeatmapValue);
+        greenIters, SAMPLE_COUNT, maxHeatmapValue, "Green Channel: ");
     generateHeatmap(blue, imageWidth, imageHeight, MINIMUM, MAXIMUM,
-        blueIters, SAMPLE_COUNT, maxHeatmapValue);
+        blueIters, SAMPLE_COUNT, maxHeatmapValue, "Blue Channel: ");
     // Scale the heatmap down for each colour channel
     for (int row = 0; row < imageHeight; ++row) {
         for (int col = 0; col < imageWidth; ++col) {
@@ -267,9 +225,9 @@ int main() {
     freeHeatmap(blue, imageHeight);
     // Obtain the ending time
     auto endTime = high_resolution_clock::now();
-    // Report the time elapsed and image generated message.
-    cout << "Time Elapsed: " << timeElapsed(endTime - startTime) << endl;
-    cout << "PPM successfully generated. Press ENTER to exit." << endl;
+    // Report image generated message and time elapsed.
+    cout << "PPM generated in " << timeElapsed(endTime - startTime)  <<
+		". Press ENTER to exit." << endl;
     cin.ignore();
 
     return EXIT_SUCCESS;
