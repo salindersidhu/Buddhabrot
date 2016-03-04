@@ -10,12 +10,6 @@ For information about the Buddhabrot rendering technique, please refer to the fo
 - Linux based distributions
 - Mac OS X
 
-## Rendering Example:
-The following is a scaled down and Photoshop enhanced grey scale rendering. The original 8000 by 8000 pixel rendering was generated using 2000 iterations per channel at 1000 samples. The total generating time was 2 hours and 13 minutes.
-<p align='center'>
-	<img src='example.png' alt='Rendering Example'/>
-</p>
-
 ## Build Instructions:
 Please refer to the [Wiki section](https://github.com/SalinderSidhu/Buddhabrot/wiki) for instructions on compiling and running the application.
 
