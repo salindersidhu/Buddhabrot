@@ -23,8 +23,8 @@ Buddhabrot::Buddhabrot(int width, int height, int samples, double minR,
 // Generate the Buddhabrot fracal data
 void Buddhabrot::generate() {
     // Variables to keep track of completition
-    LLI iterCount = 0;
-    LLI totalIters = sampleCount * 3;
+    ULLI iterCount = 0;
+    ULLI totalIters = sampleCount * 3;
     // Generate heatmaps for each colour channel
     generateHeatmap(redHeatmap, imageWidth, imageHeight, min, max,
         redIterations, sampleCount, maxHeatmapValue, iterCount, totalIters);
@@ -133,8 +133,8 @@ vector<ComplexNumber> Buddhabrot::buddhabrotPoints(const ComplexNumber& c,
 // Generate the Buddhabrot fractal heatmap
 void Buddhabrot::generateHeatmap(UINT** heatmap, int imageWidth,
     int imageHeight, const ComplexNumber& min, const ComplexNumber& max,
-    int numIters, LLI numSamples, UINT& maxHeatmapValue, LLI& iterCount,
-    LLI totalIters) {
+    int numIters, ULLI numSamples, UINT& maxHeatmapValue, ULLI& iterCount,
+    ULLI totalIters) {
     // Configure the random number generator, seed and uniform distributions
     mt19937 rng;
     uniform_real_distribution<double> rDistribution(min.r(), max.r());
@@ -143,7 +143,7 @@ void Buddhabrot::generateHeatmap(UINT** heatmap, int imageWidth,
 		.count()));
     auto next = high_resolution_clock::now() + seconds(5);
     // Collect numSamples samples where sample is just a random Complex number
-    for (LLI sampleIndex = 0; sampleIndex < numSamples; ++sampleIndex) {
+    for (ULLI sampleIndex = 0; sampleIndex < numSamples; ++sampleIndex) {
         if (high_resolution_clock::now() > next) {
             next = high_resolution_clock::now() + seconds(30);
             // Display the estimated completition

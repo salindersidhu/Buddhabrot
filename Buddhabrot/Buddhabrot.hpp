@@ -12,7 +12,7 @@ using namespace std;
 using namespace chrono;
 
 typedef unsigned int UINT;
-typedef long long int LLI;
+typedef unsigned long long int ULLI;
 
 class Buddhabrot {
 public:
@@ -31,11 +31,11 @@ private:
     int colFromI(double, double, double, int);
     vector<ComplexNumber> buddhabrotPoints(const ComplexNumber&, int);
     void generateHeatmap(UINT**, int, int, const ComplexNumber&,
-        const ComplexNumber&, int, LLI, UINT&, LLI&, LLI);
+        const ComplexNumber&, int, ULLI, UINT&, ULLI&, ULLI);
     // Private variables
     int imageWidth;
     int imageHeight;
-    LLI sampleCount;
+    ULLI sampleCount;
     ComplexNumber min;
     ComplexNumber max;
     int redIterations;
