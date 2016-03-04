@@ -1,14 +1,16 @@
 #include <string>
 #include <chrono>
 #include <fstream>
+#include <sstream>
 #include <iostream>
 #include "Buddhabrot.hpp"
 using namespace std;
 using namespace chrono;
 
 /*
-* Utility helper functions.
+* Helper functions
 */
+// Convert the time value from nanoseconds into a human readable time string
 string timeElapsed(nanoseconds time) {
     // Obtain the appropriate time for each unit
     hours hrs = duration_cast<hours>(time);
@@ -35,6 +37,8 @@ string timeElapsed(nanoseconds time) {
     return timeElapsed.str();
 }
 
+/* Return input from the user as a string. Return the default value if no input
+was provided by the user */
 string strFromUserInput(string title, string defaultVal) {
     cout << title << " [Default = " + defaultVal + "]: ";
     string input;
@@ -46,7 +50,7 @@ string strFromUserInput(string title, string defaultVal) {
 }
 
 /*
-* Main function.
+* Main function
 */
 int main() {
     // Prompt the user to configure the variables
@@ -60,9 +64,9 @@ int main() {
     int blueIters = stoi(strFromUserInput("Blue Iterations", "100"));
     double minR = stod(strFromUserInput("Minimum Real", "-2.0"));
     double minI = stod(strFromUserInput("Minimum Imaginary", "-2.0"));
-    double maxR = stod(strFromUserInput("Maximum Real", "1.0"));
+    double maxR = stod(strFromUserInput("Maximum Real", "2.0"));
     double maxI = stod(strFromUserInput("Maximum Imaginary", "2.0"));
-    int samps = stoi(strFromUserInput("Samples", "100"));
+    int samples = stoi(strFromUserInput("Samples", "100"));
     string filename = strFromUserInput("Filename", "out.ppm");
 
     // Obtain the starting time
@@ -81,7 +85,7 @@ int main() {
 
     /* Initialize a new Buddhabrot object, generate the fractal PPM image file
     and write the fractal to a file */
-    Buddhabrot buddhabrot(imageWidth, imageHeight, samps, minR, maxR, minI,
+    Buddhabrot buddhabrot(imageWidth, imageHeight, samples, minR, maxR, minI,
         maxI, redIters, blueIters, greenIters);
     buddhabrot.generate();
     buddhabrot.flushToPPMFile(imageOut);
@@ -90,7 +94,7 @@ int main() {
     // Obtain the ending time
     auto endTime = high_resolution_clock::now();
 
-    // Report image generated message and time elapsed.
+    // Report image generated message and time elapsed
     cout << "PPM generated in " << timeElapsed(endTime - startTime) <<
         ". Press ENTER to exit." << endl;
     cin.ignore();

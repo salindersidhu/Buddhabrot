@@ -1,6 +1,7 @@
 #include "Buddhabrot.hpp"
 
-Buddhabrot::Buddhabrot(int width, int height, int samps, double minR,
+// Initialize Buddhabrot class variables and allocate heatmaps
+Buddhabrot::Buddhabrot(int width, int height, int samples, double minR,
     double maxR, double minI, double maxI, int redIters, int blueIters,
     int greenIters) {
     // Initialize instance variables
@@ -11,7 +12,7 @@ Buddhabrot::Buddhabrot(int width, int height, int samps, double minR,
     greenIterations = greenIters;
     min = ComplexNumber(minR, minI);
     max = ComplexNumber(maxR, maxI);
-    sampleCount = width * height * samps;
+    sampleCount = width * height * samples;
     maxHeatmapValue = 0;
     // Allocate heatmaps for each colour channel
     allocHeatmap(redHeatmap, imageWidth, imageHeight);
@@ -19,6 +20,7 @@ Buddhabrot::Buddhabrot(int width, int height, int samps, double minR,
     allocHeatmap(greenHeatmap, imageWidth, imageHeight);
 }
 
+// Generate the Buddhabrot fracal data
 void Buddhabrot::generate() {
     // Variables to keep track of completition
     LLI iterCount = 0;
@@ -43,6 +45,7 @@ void Buddhabrot::generate() {
     }
 }
 
+// Write the Buddhabrot fracal data to a file in PPM format
 void Buddhabrot::flushToPPMFile(ofstream& outputFile) {
     // Write the PPM file header
     outputFile << "P3" << endl;
@@ -63,6 +66,7 @@ void Buddhabrot::flushToPPMFile(ofstream& outputFile) {
     freeHeatmap(greenHeatmap, imageHeight);
 }
 
+// Free memory used by a heatmap with a specific height
 void Buddhabrot::freeHeatmap(UINT**& heatmap, int height) {
     // Delete and free memory used by the nested arrays of the heatmap pointer
     for (int i = 0; i < height; ++i) {
@@ -74,6 +78,7 @@ void Buddhabrot::freeHeatmap(UINT**& heatmap, int height) {
     heatmap = nullptr;
 }
 
+// Allocate a new heatmap of a specific width and height with default 0 value
 void Buddhabrot::allocHeatmap(UINT**& heatmap, int width, int height) {
     heatmap = new UINT*[height];
     for (int i = 0; i < height; ++i) {
@@ -85,20 +90,24 @@ void Buddhabrot::allocHeatmap(UINT**& heatmap, int width, int height) {
     }
 }
 
+// Return the scaled colour from heatmap using the maxHeatmapValue
 int Buddhabrot::colourFromHeatmap(UINT heatmapValue, UINT maxHeatmapValue,
     int maxColour) {
     double scale = static_cast<double>(maxColour) / maxHeatmapValue;
-    return heatmapValue * scale;
+    return static_cast<int>(heatmapValue * scale);
 }
 
+// Return the row value from the real component of a complex number
 int Buddhabrot::rowFromR(double r, double minR, double maxR, int imageHeight) {
     return static_cast<int>((r - minR) * (imageHeight / (maxR - minR)));
 }
 
+// Return the column value from the imaginary component of a complex number
 int Buddhabrot::colFromI(double i, double minI, double maxI, int imageWidth) {
     return static_cast<int>((i - minI) * (imageWidth / (maxI - minI)));
 }
 
+// Return a list of Buddhabrot points consisting of complex numbers
 vector<ComplexNumber> Buddhabrot::buddhabrotPoints(const ComplexNumber& c,
     int numIters) {
     int n = 0;
@@ -106,7 +115,7 @@ vector<ComplexNumber> Buddhabrot::buddhabrotPoints(const ComplexNumber& c,
     // Generate a vector of complex numbers and reserve required space
     vector<ComplexNumber> outputPoints;
     outputPoints.reserve(numIters);
-    // The iteration algorithm that generates the points
+    // The iteration algorithm that generates the points to be counted
     while (n < numIters && z.squareMagnitude() <= 2.0) {
         z = z * z + c;
         ++n;
@@ -121,6 +130,7 @@ vector<ComplexNumber> Buddhabrot::buddhabrotPoints(const ComplexNumber& c,
     }
 }
 
+// Generate the Buddhabrot fractal heatmap
 void Buddhabrot::generateHeatmap(UINT** heatmap, int imageWidth,
     int imageHeight, const ComplexNumber& min, const ComplexNumber& max,
     int numIters, LLI numSamples, UINT& maxHeatmapValue, LLI& iterCount,
@@ -129,7 +139,8 @@ void Buddhabrot::generateHeatmap(UINT** heatmap, int imageWidth,
     mt19937 rng;
     uniform_real_distribution<double> rDistribution(min.r(), max.r());
     uniform_real_distribution<double> iDistribution(min.i(), max.i());
-    rng.seed(high_resolution_clock::now().time_since_epoch().count());
+    rng.seed(static_cast<UINT>(high_resolution_clock::now().time_since_epoch()
+		.count()));
     auto next = high_resolution_clock::now() + seconds(5);
     // Collect numSamples samples where sample is just a random Complex number
     for (LLI sampleIndex = 0; sampleIndex < numSamples; ++sampleIndex) {

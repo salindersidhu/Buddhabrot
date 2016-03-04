@@ -6,7 +6,6 @@
 #include <chrono>
 #include <vector>
 #include <fstream>
-#include <sstream>
 #include <iostream>
 #include "ComplexNumber.hpp"
 using namespace std;
