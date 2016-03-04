@@ -13,7 +13,7 @@ For more information about the Buddhabrot rendering technique, please refer to t
 ## Rendering Example:
 The following rendering is scaled down and enhanced with Photoshop. The raw 8000 by 8000 pixel rendering was generated using 4000 iterations per channel (Red, Green and Blue) at 500 samples per channel. The time elapsed was 5 hours and the file size was 513 MB.
 <p align='center'>
-	<img src='example.png' alt='Rendering Example'/>
+	<img src='Examples\scaled_example.png' alt='Rendering Example'/>
 </p>
 
 ## Build Instructions:
