@@ -147,9 +147,8 @@ void Buddhabrot::generateHeatmap(UINT** heatmap, int imageWidth,
         if (high_resolution_clock::now() > next) {
             next = high_resolution_clock::now() + seconds(30);
             // Display the estimated completition
-            cout << "Estimated Completion: " <<
-                static_cast<int>((static_cast<float>(iterCount) /
-                static_cast<float>(totalIters)) * 100) << "%" << endl;
+            cout << "Estimated Completion: " << static_cast<float>(iterCount) /
+                static_cast<float>(totalIters) * 100 << "%" << endl;
         }
         ++iterCount;
         // Each sample gets a list of points if it escapes to infinity
