@@ -10,6 +10,10 @@ For more information about the Buddhabrot rendering technique, please refer to t
 - Linux based distributions
 - Mac OS X
 
+## Dependencies:
+- **Compiler**
+	- G++ or Microsoft Visual Studio 2015 [Community Edition](https://www.visualstudio.com/en-us/downloads/download-visual-studio-vs.aspx)
+
 ## Rendering Example:
 The following rendering is scaled down and enhanced with Photoshop. The raw 8000 by 8000 pixel rendering was generated using 4000 iterations per channel (Red, Green and Blue) at 500 samples per channel. The time elapsed was 5 hours and the file size was 513 MB.
 <p align='center'>
