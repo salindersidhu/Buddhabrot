@@ -70,7 +70,8 @@ int main() {
     string filename = strFromUserInput("Filename", "out.ppm");
 
     // Obtain the starting time
-    cout << "Generating PPM, this can take a while, please wait..." << endl;
+    cout << "Generating fractal data, this can take a while, please wait..." <<
+        endl;
     auto startTime = high_resolution_clock::now();
 
     // Initialize an output file stream for writing
@@ -88,6 +89,7 @@ int main() {
     Buddhabrot buddhabrot(imageWidth, imageHeight, samples, minR, maxR, minI,
         maxI, redIters, blueIters, greenIters);
     buddhabrot.generate();
+    cout << "Writing fractal data to PPM file, almost done..." << endl;
     buddhabrot.flushToPPMFile(imageOut);
     imageOut.close();
 
@@ -95,7 +97,7 @@ int main() {
     auto endTime = high_resolution_clock::now();
 
     // Report image generated message and time elapsed
-    cout << "PPM generated in " << timeElapsed(endTime - startTime) <<
+    cout << "PPM file generated in " << timeElapsed(endTime - startTime) <<
         ". Press ENTER to exit." << endl;
     cin.ignore();
 
