@@ -1,12 +1,42 @@
-# Visual Studio generated files
-*.sdf
-*.opendb
+# Compiled Object files
+*.slo
+*.lo
 *.o
-*.aps
-.vs/
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
 Debug
 Release
 x64
-x86
+
+# Visual Studio generated files
+*.sdf
+*.opendb
+*.db
+*.aps
+.vs/
+
 # Mac OS X generated files
 .DS_Store

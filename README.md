@@ -24,4 +24,4 @@ The following rendering is scaled down and enhanced with Photoshop. The raw 8000
 Please refer to the [Wiki section](https://github.com/SalinderSidhu/Buddhabrot/wiki) for instructions on compiling and running the application.
 
 ## License:
-MIT
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](/LICENSE.md)
