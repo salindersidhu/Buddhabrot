@@ -14,11 +14,15 @@ For more information about the Buddhabrot rendering technique, please refer to t
 - **Compiler**
 	- G++ or Microsoft Visual Studio 2015 [Community Edition](https://www.visualstudio.com/en-us/downloads/download-visual-studio-vs.aspx)
 
-## Rendering Example:
-The following rendering is scaled down and enhanced with Photoshop. The raw 8000 by 8000 pixel rendering was generated using 4000 iterations per channel (Red, Green and Blue) at 500 samples per channel. The time elapsed was 5 hours and the file size was 513 MB.
-<p align='center'>
-	<img src='Examples\scaled_example.png' alt='Rendering Example'/>
+## Rendering Samples:
+The following renderings are scaled down and enhanced with Photoshop.
+<p align="left">
+	<img src="https://user-images.githubusercontent.com/12175684/40275844-30867452-5bc9-11e8-9382-85365f99d70f.png" height="420" width="420" alt="Rendering A"/>
+	<img src="https://user-images.githubusercontent.com/12175684/40275843-25a7c040-5bc9-11e8-9c11-b1537635e4f5.png" height="420" width="420" alt="Rendering B"/>
 </p>
+The first image was originally 1000 by 1000 pixels, generated using 20 iterations per colour channel at 50 samples per colour channel. The image size was 1.3 MB.
+
+The second image was originally 8000 by 8000 pixels, generated using 4000 iterations per channel at 500 samples per colour channel. The image size was 513 MB!
 
 ## Build Instructions:
 Please refer to the [Wiki section](https://github.com/SalinderSidhu/Buddhabrot/wiki) for instructions on compiling and running the application.
