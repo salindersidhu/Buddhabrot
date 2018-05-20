@@ -20,9 +20,10 @@ The following renderings are scaled down and enhanced with Photoshop.
 	<img src="https://user-images.githubusercontent.com/12175684/40275844-30867452-5bc9-11e8-9382-85365f99d70f.png" height="420" width="420" alt="Rendering A"/>
 	<img src="https://user-images.githubusercontent.com/12175684/40275843-25a7c040-5bc9-11e8-9c11-b1537635e4f5.png" height="420" width="420" alt="Rendering B"/>
 </p>
-The first image was originally 1000 by 1000 pixels, generated using 20 iterations per colour channel at 50 samples per colour channel. The image size was 1.3 MB.
 
-The second image was originally 8000 by 8000 pixels, generated using 4000 iterations per channel at 500 samples per colour channel. The image size was 513 MB!
+The first image was originally **1000 x 1000 pixels** generated using **20 iterations** per colour channel at **50 samples** per channel. The image size was 1.33 MB.
+
+The second image was originally **8000 x 8000 pixels** generated using **4000 iterations** per colour channel at **500 samples** per channel. The image size was 513 MB!
 
 ## Build Instructions:
 Please refer to the [Wiki section](https://github.com/SalinderSidhu/Buddhabrot/wiki) for instructions on compiling and running the application.
