@@ -8,31 +8,36 @@
 #include <fstream>
 #include <iostream>
 #include "ComplexNumber.hpp"
-using namespace std;
-using namespace chrono;
+
+using std::vector;
+using std::ofstream;
+using std::mt19937;
+using std::uniform_real_distribution;
+using std::cout;
+using std::endl;
+using namespace std::chrono;
 
 typedef unsigned int UINT;
 typedef unsigned long long int ULLI;
 
 class Buddhabrot {
 public:
-    // Constructor and destructor
-    Buddhabrot(int, int, int, double, double, double, double, int, int, int);
-    virtual ~Buddhabrot() {};
-    // Buddhabrot public functions
+    Buddhabrot(int width, int height, int samples, double minReal, double maxReal, double minImaginary, double maxImaginary, int redIterations, int greenIterations, int blueIterations);
+    ~Buddhabrot();
+
     void generate();
-    void flushToPPMFile(ofstream&);
+    void flushToPPM(ofstream& outFile);
 private:
-    // Private functions
-    void freeHeatmap(UINT**&, int);
-    void allocHeatmap(UINT**&, int, int);
-    int colourFromHeatmap(UINT, UINT, int);
-    int rowFromR(double, double, double, int);
-    int colFromI(double, double, double, int);
-    vector<ComplexNumber> buddhabrotPoints(const ComplexNumber&, int);
-    void generateHeatmap(UINT**, int, int, const ComplexNumber&,
-        const ComplexNumber&, int, ULLI, UINT&, ULLI&, ULLI);
-    // Private variables
+    void allocHeatmap(UINT**& heatmap, int width, int height);
+    void freeHeatmap(UINT**& heatmap, int height);
+    void generateHeatmap(UINT** heatmap, int imageWidth, int imageHeight, const ComplexNumber& min, const ComplexNumber& max, int iterations, ULLI samples, UINT& maxHeatmapValue, ULLI& iterationCount, ULLI totalIterations);
+
+    int getColourFromHeatmap(UINT heatmapValue, UINT maxHeatmapValue, int maxColour);
+    int getRowFromReal(double real, double minReal, double maxReal, int imageHeight);
+    int getColumnFromImaginary(double imaginary, double minImaginary, double maxImaginary, int imageWidth);
+
+    vector<ComplexNumber> points(const ComplexNumber& c, int iterations);
+
     int imageWidth;
     int imageHeight;
     ULLI sampleCount;

@@ -4,102 +4,92 @@
 #include <sstream>
 #include <iostream>
 #include "Buddhabrot.hpp"
+
 using namespace std;
 using namespace chrono;
 
 /*
-* Helper functions
-*/
-// Convert the time value from nanoseconds into a human readable time string
-string timeElapsed(nanoseconds time) {
-    // Obtain the appropriate time for each unit
-    hours hrs = duration_cast<hours>(time);
-    minutes mins = duration_cast<minutes>(time - hrs);
-    seconds secs = duration_cast<seconds>(time - hrs - mins);
-    milliseconds ms = duration_cast<milliseconds>(time - hrs - mins - secs);
-    // Generate the string representing the output time
-    stringstream timeElapsed("");
-    if (hrs.count() > 24) {
-        timeElapsed << hrs.count() / 24 << " Days, " << hrs.count() % 24 <<
-            " Hours, ";
-    } else if (hrs.count() > 0) {
-        timeElapsed << hrs.count() << " Hours, ";
-    }
-    if (mins.count() > 0) {
-        timeElapsed << mins.count() << " Minutes, ";
-    }
-    if (secs.count() > 0) {
-        timeElapsed << secs.count() << " Seconds, ";
-    }
-    if (ms.count() > 0) {
-        timeElapsed << ms.count() << " Milliseconds";
-    }
-    return timeElapsed.str();
+ * Helper functions
+ */
+
+// Convert nanoseconds to a human-readable time string
+string static timeElapsed(nanoseconds time) {
+  hours h = duration_cast<hours>(time);
+  minutes m = duration_cast<minutes>(time - h);
+  seconds s = duration_cast<seconds>(time - h - m);
+  milliseconds ms = duration_cast<milliseconds>(time - h - ms - s);
+
+  stringstream result;
+  if (h.count() >= 24) {
+    result << h.count() / 24 << " Days, " << h.count() % 24 << " Hours, ";
+  } else if (h.count() > 0) {
+    result << h.count() << " Hours, ";
+  }
+  if (m.count() > 0) {
+      result << m.count() << " Minutes, ";
+  }
+  if (s.count() > 0) {
+      result << s.count() << " Seconds, ";
+  }
+  if (ms.count() > 0) {
+      result << ms.count() << " Milliseconds";
+  }
+
+  return result.str();
 }
 
-/* Return input from the user as a string. Return the default value if no input
-was provided by the user */
-string strFromUserInput(string title, string defaultVal) {
-    cout << title << " [Default = " + defaultVal + "]: ";
-    string input;
-    getline(cin, input);
-    if (!input.empty()) {
-        return input;
-    }
-    return defaultVal;
+// Get user input with a default value
+string getUserInput(const string& prompt, const string& defaultValue) {
+  cout << prompt << " [Default = " + defaultValue + "]: ";
+  string input;
+  getline(cin, input);
+  return input.empty() ? defaultValue : input;
 }
 
 /*
-* Main function
-*/
+ * Main function
+ */
 int main() {
-    // Prompt the user to configure the variables
-    cout << "Welcome to the Buddhabrot Fractal Image Generator" << endl;
-    cout << "=================================================" << endl;
-    cout << "Please setup variables (Press ENTER for Default)" << endl;
-    int imageWidth = stoi(strFromUserInput("Image Width", "512"));
-    int imageHeight = stoi(strFromUserInput("Image Height", "512"));
-    int redIters = stoi(strFromUserInput("Red Iterations", "100"));
-    int greenIters = stoi(strFromUserInput("Green Iterations", "100"));
-    int blueIters = stoi(strFromUserInput("Blue Iterations", "100"));
-    double minR = stod(strFromUserInput("Minimum Real", "-2.0"));
-    double minI = stod(strFromUserInput("Minimum Imaginary", "-2.0"));
-    double maxR = stod(strFromUserInput("Maximum Real", "2.0"));
-    double maxI = stod(strFromUserInput("Maximum Imaginary", "2.0"));
-    int samples = stoi(strFromUserInput("Samples", "100"));
-    string filename = strFromUserInput("Filename", "out.ppm");
+  // Prompt the user to configure the variables
+  cout << "Welcome to the Buddhabrot Fractal Image Generator" << endl;
+  cout << "=================================================" << endl;
+  cout << "Please configure the settings (Press ENTER for default values)" << endl;
 
-    // Obtain the starting time
-    cout << "Generating fractal data, this can take a while, please wait..." <<
-        endl;
-    auto startTime = high_resolution_clock::now();
+  int imageWidth = stoi(getUserInput("Image Width", "512"));
+  int imageHeight = stoi(getUserInput("Image Height", "512"));
+  int redIters = stoi(getUserInput("Red Iterations", "100"));
+  int greenIters = stoi(getUserInput("Green Iterations", "100"));
+  int blueIters = stoi(getUserInput("Blue Iterations", "100"));
+  double minR = stod(getUserInput("Minimum Real", "-2.0"));
+  double minI = stod(getUserInput("Minimum Imaginary", "-2.0"));
+  double maxR = stod(getUserInput("Maximum Real", "2.0"));
+  double maxI = stod(getUserInput("Maximum Imaginary", "2.0"));
+  int samples = stoi(getUserInput("Samples", "100"));
+  string filename = getUserInput("Filename", "out.ppm");
 
-    // Initialize an output file stream for writing
-    ofstream imageOut(filename);
-    if (!imageOut) {
-        // Display message and exit application if error on opening file
-        cout << "Could not open image file for writing!" << endl;
-        cout << "Press ENTER to exit." << endl;
-        cin.ignore();
-        return EXIT_FAILURE;
-    }
+  // Start timer
+  cout << "Generating fractal data, please wait..." << endl;
+  auto startTime = high_resolution_clock::now();
 
-    /* Initialize a new Buddhabrot object, generate the fractal PPM image file
-    and write the fractal to a file */
-    Buddhabrot buddhabrot(imageWidth, imageHeight, samples, minR, maxR, minI,
-        maxI, redIters, blueIters, greenIters);
-    buddhabrot.generate();
-    cout << "Writing fractal data to PPM file, almost done..." << endl;
-    buddhabrot.flushToPPMFile(imageOut);
-    imageOut.close();
-
-    // Obtain the ending time
-    auto endTime = high_resolution_clock::now();
-
-    // Report image generated message and time elapsed
-    cout << "PPM file generated in " << timeElapsed(endTime - startTime) <<
-        ". Press ENTER to exit." << endl;
+  // Initialize output file stream
+  ofstream imageOut(filename);
+  if (!imageOut) {
+    cerr << "Error: Unable to open image file for writing!" << endl;
     cin.ignore();
+    return EXIT_FAILURE;
+  }
 
-    return EXIT_SUCCESS;
+  // Generate Buddhabrot fractal and write to PPM file
+  Buddhabrot buddhabrot(imageWidth, imageHeight, samples, minR, maxR, minI, maxI, redIters, blueIters, greenIters);
+  buddhabrot.generate();
+  cout << "Writing fractal data to PPM file..." << endl;
+  buddhabrot.flushToPPM(imageOut);
+  imageOut.close();
+
+  // End timer and report time elapsed
+  auto endTime = high_resolution_clock::now();
+  cout << "PPM file generated in " << timeElapsed(endTime - startTime) << ". Press ENTER to exit." << endl;
+  cin.ignore();
+
+  return EXIT_SUCCESS;
 }
