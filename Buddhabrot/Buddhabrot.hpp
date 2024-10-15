@@ -33,6 +33,7 @@ private:
   void allocHeatmap(UINT**& heatmap);
   void freeHeatmap(UINT**& heatmap);
   void generateHeatmap(UINT** heatmap, int iterations);
+  void scaleHeatmapsToColor();
 
   int getColourFromHeatmap(UINT heatmapValue);
   int getRowFromReal(double real);
@@ -43,8 +44,6 @@ private:
   int imageWidth;
   int imageHeight;
   ULLI sampleCount;
-  ULLI iterationCount;
-  ULLI totalIterations;
   ComplexNumber min;
   ComplexNumber max;
   int redIterations;

@@ -1,3 +1,4 @@
+#include <thread>
 #include "Buddhabrot.hpp"
 
 Buddhabrot::Buddhabrot(int width, int height, int samples, double minReal,
@@ -6,8 +7,7 @@ Buddhabrot::Buddhabrot(int width, int height, int samples, double minReal,
                        int blueIterations)
   : imageWidth(width), imageHeight(height), sampleCount(width * height * samples),
     min(minReal, minImaginary), max(maxReal, maxImaginary), redIterations(redIterations),
-    blueIterations(blueIterations), greenIterations(greenIterations), maxHeatmapValue(0),
-    iterationCount(0), totalIterations(sampleCount * 3) {
+    blueIterations(blueIterations), greenIterations(greenIterations), maxHeatmapValue(0) {
   // Allocate heatmaps for each color channel
   allocHeatmap(redHeatmap);
   allocHeatmap(blueHeatmap);
@@ -21,18 +21,18 @@ Buddhabrot::~Buddhabrot() {
 }
 
 void Buddhabrot::generate() {
-  generateHeatmap(redHeatmap, redIterations);
-  generateHeatmap(greenHeatmap, greenIterations);
-  generateHeatmap(blueHeatmap, blueIterations);
+  // Create threads for each color channel
+  std::thread redThread(&Buddhabrot::generateHeatmap, this, redHeatmap, redIterations);
+  std::thread greenThread(&Buddhabrot::generateHeatmap, this, greenHeatmap, greenIterations);
+  std::thread blueThread(&Buddhabrot::generateHeatmap, this, blueHeatmap, blueIterations);
+
+  // Wait for all threads to finish
+  redThread.join();
+  greenThread.join();
+  blueThread.join();
 
   // Scale heatmap values to a max color of 255
-  for (int row = 0; row < imageHeight; ++row) {
-    for (int col = 0; col < imageWidth; ++col) {
-      redHeatmap[row][col] = getColourFromHeatmap(redHeatmap[row][col]);
-      greenHeatmap[row][col] = getColourFromHeatmap(greenHeatmap[row][col]);
-      blueHeatmap[row][col] = getColourFromHeatmap(blueHeatmap[row][col]);
-    }
-  }
+  scaleHeatmapsToColor();
 }
 
 void Buddhabrot::flushToPPM(ofstream& outFile) {
@@ -79,7 +79,7 @@ vector<ComplexNumber> Buddhabrot::points(const ComplexNumber& c, int iterations)
   points.reserve(iterations);
 
   for (int n = 0; n < iterations && z.squareMagnitude() <= 2.0; ++n) {
-      z = z * z + c;
+    z = z * z + c;
     points.push_back(z);
   }
 
@@ -94,14 +94,7 @@ void Buddhabrot::generateHeatmap(UINT** heatmap, int iterations) {
   uniform_real_distribution<double> rDist(min.real(), max.real());
   uniform_real_distribution<double> iDist(min.imaginary(), max.imaginary());
 
-  auto nextReport = high_resolution_clock::now() + seconds(5);
-
   for (ULLI i = 0; i < sampleCount; ++i) {
-    if (high_resolution_clock::now() > nextReport) {
-      cout << "Progress: " << (static_cast<double>(iterationCount) / totalIterations) * 100 << "%\n";
-      nextReport = high_resolution_clock::now() + seconds(30);
-    }
-    
     ComplexNumber sample(rDist(rng), iDist(rng));
     vector<ComplexNumber> points = Buddhabrot::points(sample, iterations);
     
@@ -115,6 +108,15 @@ void Buddhabrot::generateHeatmap(UINT** heatmap, int iterations) {
         }
       }
     }
-    ++iterationCount;
+  }
+}
+
+void Buddhabrot::scaleHeatmapsToColor() {
+  for (int row = 0; row < imageHeight; ++row) {
+    for (int col = 0; col < imageWidth; ++col) {
+      redHeatmap[row][col] = getColourFromHeatmap(redHeatmap[row][col]);
+      greenHeatmap[row][col] = getColourFromHeatmap(greenHeatmap[row][col]);
+      blueHeatmap[row][col] = getColourFromHeatmap(blueHeatmap[row][col]);
+    }
   }
 }
