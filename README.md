@@ -1,6 +1,6 @@
 # Buddhabrot Fractal Generator
 
-[![License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=for-the-badge)](/LICENSE.md)
+[![Contributors](https://img.shields.io/github/contributors/salindersidhu/Buddhabrot?style=for-the-badge)](https://github.com/salindersidhu/Buddhabrot/graphs/contributors) [![Visitors](https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2Fsalindersidhu%2FBuddhabrot&countColor=%23263759)](https://visitorbadge.io/status?path=https%3A%2F%2Fgithub.com%2Fsalindersidhu%2FBuddhabrot) [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=for-the-badge)](/LICENSE.md)
 
 ## Overview
 
@@ -10,13 +10,14 @@ This application generates a Buddhabrot fractal image in a PPM (Portable Pixel M
 
 ## Prerequisite Software
 
-| Software                        | Version   |
-| :------------------------------ | :-------- |
-| G++ or Microsoft Visual Studio  | 2015+     |
+| Software                       | Version |
+| :----------------------------- | :------ |
+| G++ or Microsoft Visual Studio | 2015+   |
 
 ## Features
 
 The following renderings are scaled down and enhanced with Photoshop.
+
 <p align="left">
 	<img src="https://user-images.githubusercontent.com/12175684/40275844-30867452-5bc9-11e8-9382-85365f99d70f.png" height="420" width="420" alt="Rendering A"/>
 	<img src="https://user-images.githubusercontent.com/12175684/40275843-25a7c040-5bc9-11e8-9c11-b1537635e4f5.png" height="420" width="420" alt="Rendering B"/>
@@ -28,7 +29,45 @@ The second image was originally **8000 x 8000 pixels** generated using **4000 it
 
 ## Getting Started
 
-Please refer to the [Wiki section](https://github.com/SalinderSidhu/Buddhabrot/wiki) for instructions on compiling and running the application.
+You will need to setup Microsoft Visual Studio for Windoes or G++ for Linx or Mac.
+
+### Windows
+
+1. Open `Buddhabrot.sln` in Microsoft Visual Studio 2015.
+
+2. Change `Solutions Configurations` to Release.
+
+3. Change the `Solution Platform` to `x64`.
+
+4. Right click `Buddhabrot` in the Solution Explorer and select `Build` to build `Buddhabrot.exe`.
+
+### Mac or Linux
+
+1. Navigate to the Buddhabrot source code using the following command:
+
+```bash
+cd Buddhabrot
+```
+
+2. Compile Buddhabrot using the following command:
+
+```bash
+make
+```
+
+## Running
+
+### Windows
+
+Double click `Buddhabrot.exe` in the `x64\Release` folder.
+
+### Mac or Linux
+
+Run Buddhabrot using the following command:
+
+```bash
+./Buddhabrot
+```
 
 ## Contributing
 
