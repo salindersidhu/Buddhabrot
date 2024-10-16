@@ -4,102 +4,91 @@
 #include <sstream>
 #include <iostream>
 #include "Buddhabrot.hpp"
+
 using namespace std;
-using namespace chrono;
 
-/*
-* Helper functions
-*/
-// Convert the time value from nanoseconds into a human readable time string
-string timeElapsed(nanoseconds time) {
-    // Obtain the appropriate time for each unit
-    hours hrs = duration_cast<hours>(time);
-    minutes mins = duration_cast<minutes>(time - hrs);
-    seconds secs = duration_cast<seconds>(time - hrs - mins);
-    milliseconds ms = duration_cast<milliseconds>(time - hrs - mins - secs);
-    // Generate the string representing the output time
-    stringstream timeElapsed("");
-    if (hrs.count() > 24) {
-        timeElapsed << hrs.count() / 24 << " Days, " << hrs.count() % 24 <<
-            " Hours, ";
-    } else if (hrs.count() > 0) {
-        timeElapsed << hrs.count() << " Hours, ";
-    }
-    if (mins.count() > 0) {
-        timeElapsed << mins.count() << " Minutes, ";
-    }
-    if (secs.count() > 0) {
-        timeElapsed << secs.count() << " Seconds, ";
-    }
-    if (ms.count() > 0) {
-        timeElapsed << ms.count() << " Milliseconds";
-    }
-    return timeElapsed.str();
+void displayHelp() {
+  cout << "This program generates a Buddhabrot fractal and saves it as a PPM image.\n\n"
+       << "Usage: ./Buddhabrot.exe [options]\n\n"
+       << "Options:\n"
+       << "  -W, -w <int>        Image width (default: 512)\n"
+       << "  -H, -h <int>        Image height (default: 512)\n"
+       << "  -R, -r <int>        Red iterations (default: 100)\n"
+       << "  -G, -g <int>        Green iterations (default: 100)\n"
+       << "  -B, -b <int>        Blue iterations (default: 100)\n"
+       << "  -minR <double>      Minimum real value (default: -2.0)\n"
+       << "  -minI <double>      Minimum imaginary value (default: -2.0)\n"
+       << "  -maxR <double>      Maximum real value (default: 2.0)\n"
+       << "  -maxI <double>      Maximum imaginary value (default: 2.0)\n"
+       << "  -samples <int>      Number of samples per pixel (default: 100)\n"
+       << "  -file <string>      Output filename (default: out.ppm)\n"
+       << "  -V, -v              Verbose mode\n"
+       << "  -help, -usage       Display this help message\n\n"
+       << "Example:\n"
+       << "  ./Buddhabrot.exe -w 1024 -h 1024 -r 200 -g 200 -b 200 -file fractal.ppm\n";
 }
 
-/* Return input from the user as a string. Return the default value if no input
-was provided by the user */
-string strFromUserInput(string title, string defaultVal) {
-    cout << title << " [Default = " + defaultVal + "]: ";
-    string input;
-    getline(cin, input);
-    if (!input.empty()) {
-        return input;
+int main(int argc, char* argv[]) {
+  int imageWidth = 512;
+  int imageHeight = 512;
+  int redIterations = 100;
+  int greenIterations = 100;
+  int blueIterations = 100;
+  double minR = -2.0;
+  double minI = -2.0;
+  double maxR = 2.0;
+  double maxI = 2.0;
+  int samples = 100;
+  string filename = "out.ppm";
+  bool verbose = false;
+
+  // Check if any help flag is provided
+  for (int i = 1; i < argc; ++i) {
+    if (strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "-usage") == 0) {
+      displayHelp();
+      return EXIT_SUCCESS;
     }
-    return defaultVal;
-}
+  }
 
-/*
-* Main function
-*/
-int main() {
-    // Prompt the user to configure the variables
-    cout << "Welcome to the Buddhabrot Fractal Image Generator" << endl;
-    cout << "=================================================" << endl;
-    cout << "Please setup variables (Press ENTER for Default)" << endl;
-    int imageWidth = stoi(strFromUserInput("Image Width", "512"));
-    int imageHeight = stoi(strFromUserInput("Image Height", "512"));
-    int redIters = stoi(strFromUserInput("Red Iterations", "100"));
-    int greenIters = stoi(strFromUserInput("Green Iterations", "100"));
-    int blueIters = stoi(strFromUserInput("Blue Iterations", "100"));
-    double minR = stod(strFromUserInput("Minimum Real", "-2.0"));
-    double minI = stod(strFromUserInput("Minimum Imaginary", "-2.0"));
-    double maxR = stod(strFromUserInput("Maximum Real", "2.0"));
-    double maxI = stod(strFromUserInput("Maximum Imaginary", "2.0"));
-    int samples = stoi(strFromUserInput("Samples", "100"));
-    string filename = strFromUserInput("Filename", "out.ppm");
+  // Parsing command-line arguments (case-insensitive for W, H, R, G, B)
+  for (int i = 1; i < argc; ++i) {
+    if ((strcmp(argv[i], "-W") == 0 || strcmp(argv[i], "-w") == 0) && i + 1 < argc) imageWidth = atoi(argv[++i]);
+    else if ((strcmp(argv[i], "-H") == 0 || strcmp(argv[i], "-h") == 0) && i + 1 < argc) imageHeight = atoi(argv[++i]);
+    else if ((strcmp(argv[i], "-R") == 0 || strcmp(argv[i], "-r") == 0) && i + 1 < argc) redIterations = atoi(argv[++i]);
+    else if ((strcmp(argv[i], "-G") == 0 || strcmp(argv[i], "-g") == 0) && i + 1 < argc) greenIterations = atoi(argv[++i]);
+    else if ((strcmp(argv[i], "-B") == 0 || strcmp(argv[i], "-b") == 0) && i + 1 < argc) blueIterations = atoi(argv[++i]);
+    else if (strcmp(argv[i], "-minR") == 0 && i + 1 < argc) minR = atof(argv[++i]);
+    else if (strcmp(argv[i], "-minI") == 0 && i + 1 < argc) minI = atof(argv[++i]);
+    else if (strcmp(argv[i], "-maxR") == 0 && i + 1 < argc) maxR = atof(argv[++i]);
+    else if (strcmp(argv[i], "-maxI") == 0 && i + 1 < argc) maxI = atof(argv[++i]);
+    else if (strcmp(argv[i], "-samples") == 0 && i + 1 < argc) samples = atoi(argv[++i]);
+    else if (strcmp(argv[i], "-file") == 0 && i + 1 < argc) filename = argv[++i];
+    else if (strcmp(argv[i], "-V") == 0 || strcmp(argv[i], "-v") == 0) verbose = true;
+  }
 
-    // Obtain the starting time
-    cout << "Generating fractal data, this can take a while, please wait..." <<
-        endl;
-    auto startTime = high_resolution_clock::now();
+  // Display user settings if verbose is enabled
+  if (verbose) {
+    cout << "Image Width: " << imageWidth << "\nImage Height: " << imageHeight
+         << "\nRed Iterations: " << redIterations << "\nGreen Iterations: " << greenIterations
+         << "\nBlue Iterations: " << blueIterations << "\nMin Real: " << minR
+         << "\nMin Imaginary: " << minI << "\nMax Real: " << maxR
+         << "\nMax Imaginary: " << maxI << "\nSamples: " << samples
+         << "\nOutput Filename: " << filename << endl;
+  }
 
-    // Initialize an output file stream for writing
-    ofstream imageOut(filename);
-    if (!imageOut) {
-        // Display message and exit application if error on opening file
-        cout << "Could not open image file for writing!" << endl;
-        cout << "Press ENTER to exit." << endl;
-        cin.ignore();
-        return EXIT_FAILURE;
-    }
+  // Start fractal generation
+  cout << "Generating fractal data, please wait..." << endl;
+  Buddhabrot buddhabrot(imageWidth, imageHeight, samples, minR, maxR, minI, 
+                        maxI, redIterations, greenIterations, blueIterations,
+                        filename, verbose);
+  int result = buddhabrot.generate();
 
-    /* Initialize a new Buddhabrot object, generate the fractal PPM image file
-    and write the fractal to a file */
-    Buddhabrot buddhabrot(imageWidth, imageHeight, samples, minR, maxR, minI,
-        maxI, redIters, blueIters, greenIters);
-    buddhabrot.generate();
-    cout << "Writing fractal data to PPM file, almost done..." << endl;
-    buddhabrot.flushToPPMFile(imageOut);
-    imageOut.close();
+  // Check result and display appropriate error message
+  if (result == EXIT_FAILURE) {
+    cerr << "Error: Could not open file '" << filename << "' for writing." << endl;
+  } else {
+    cout << "PPM file '" << filename << "' successfully generated." << endl;
+  }
 
-    // Obtain the ending time
-    auto endTime = high_resolution_clock::now();
-
-    // Report image generated message and time elapsed
-    cout << "PPM file generated in " << timeElapsed(endTime - startTime) <<
-        ". Press ENTER to exit." << endl;
-    cin.ignore();
-
-    return EXIT_SUCCESS;
+  return EXIT_SUCCESS;
 }

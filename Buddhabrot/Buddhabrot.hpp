@@ -1,50 +1,74 @@
 #ifndef BUDDHABROT_HPP
 #define BUDDHABROT_HPP
 
+#include <mutex>
+#include <atomic>
 #include <string>
 #include <random>
 #include <chrono>
 #include <vector>
+#include <thread>
 #include <fstream>
 #include <iostream>
 #include "ComplexNumber.hpp"
-using namespace std;
-using namespace chrono;
+
+using std::mutex;
+using std::atomic;
+using std::string;
+using std::vector;
+using std::thread;
+using std::lock_guard;
+using std::ofstream;
+using std::mt19937;
+using std::lock_guard;
+using std::uniform_real_distribution;
+using std::cout;
+using std::endl;
+using namespace std::chrono;
 
 typedef unsigned int UINT;
 typedef unsigned long long int ULLI;
 
 class Buddhabrot {
 public:
-    // Constructor and destructor
-    Buddhabrot(int, int, int, double, double, double, double, int, int, int);
-    virtual ~Buddhabrot() {};
-    // Buddhabrot public functions
-    void generate();
-    void flushToPPMFile(ofstream&);
+  Buddhabrot(int width, int height, int samples, double minR, double maxR,
+             double minI, double maxI, int redIterations, int greenIterations,
+             int blueIterations, const string& filename, bool verbose = false);
+  ~Buddhabrot();
+
+  int generate();
 private:
-    // Private functions
-    void freeHeatmap(UINT**&, int);
-    void allocHeatmap(UINT**&, int, int);
-    int colourFromHeatmap(UINT, UINT, int);
-    int rowFromR(double, double, double, int);
-    int colFromI(double, double, double, int);
-    vector<ComplexNumber> buddhabrotPoints(const ComplexNumber&, int);
-    void generateHeatmap(UINT**, int, int, const ComplexNumber&,
-        const ComplexNumber&, int, ULLI, UINT&, ULLI&, ULLI);
-    // Private variables
-    int imageWidth;
-    int imageHeight;
-    ULLI sampleCount;
-    ComplexNumber min;
-    ComplexNumber max;
-    int redIterations;
-    int blueIterations;
-    int greenIterations;
-    UINT** redHeatmap;
-    UINT** blueHeatmap;
-    UINT** greenHeatmap;
-    UINT maxHeatmapValue;
+  void allocHeatmap(UINT**& heatmap);
+  void freeHeatmap(UINT**& heatmap);
+  void generateHeatmap(UINT** heatmap, int iterations);
+  void scaleHeatmapsToColor();
+  void reportProgress();
+
+  int flushToPPM();
+  int getColourFromHeatmap(UINT heatmapValue);
+  int getRowFromReal(double real);
+  int getColumnFromImaginary(double imaginary);
+
+  vector<ComplexNumber> points(const ComplexNumber& c, int iterations);
+
+  int imageWidth;
+  int imageHeight;
+  ULLI sampleCount;
+  ComplexNumber min;
+  ComplexNumber max;
+  int redIterations;
+  int blueIterations;
+  int greenIterations;
+  UINT** redHeatmap;
+  UINT** blueHeatmap;
+  UINT** greenHeatmap;
+  UINT maxHeatmapValue;
+
+  bool verbose;
+  string filename;
+
+  ULLI totalIterations;
+  atomic<ULLI> iterationCount;
 };
 
 #endif // BUDDHABROT_HPP
