@@ -69,6 +69,12 @@ Run Buddhabrot using the following command:
 ./Buddhabrot
 ```
 
+For specific options and additional information, you can run the following command:
+
+```bash
+./Buddhabrot.exe -help
+```
+
 ## Contributing
 
 Please see our [Contributing Guide](/CONTRIBUTING.md) for more info.

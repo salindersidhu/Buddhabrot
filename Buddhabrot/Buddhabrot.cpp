@@ -1,13 +1,18 @@
-#include <thread>
 #include "Buddhabrot.hpp"
 
-Buddhabrot::Buddhabrot(int width, int height, int samples, double minReal,
-                       double maxReal, double minImaginary, double maxImaginary,
-                       int redIterations, int greenIterations,
-                       int blueIterations)
+// Mutex for thread synchronization during progress reporting
+mutex progressMutex;
+atomic<ULLI> iterationCount(0); // Shared atomic iteration counter
+
+Buddhabrot::Buddhabrot(int width, int height, int samples, double minR,
+                       double maxR, double minI, double maxI, int redIterations,
+                       int greenIterations, int blueIterations, const string& filename,
+                       bool verbose)
   : imageWidth(width), imageHeight(height), sampleCount(width * height * samples),
-    min(minReal, minImaginary), max(maxReal, maxImaginary), redIterations(redIterations),
-    blueIterations(blueIterations), greenIterations(greenIterations), maxHeatmapValue(0) {
+    min(minR, minI), max(maxR, maxI), redIterations(redIterations),
+    blueIterations(blueIterations), greenIterations(greenIterations),
+    maxHeatmapValue(0), filename(filename), totalIterations(sampleCount * 3),
+    verbose(verbose) {
   // Allocate heatmaps for each color channel
   allocHeatmap(redHeatmap);
   allocHeatmap(blueHeatmap);
@@ -20,29 +25,51 @@ Buddhabrot::~Buddhabrot() {
   freeHeatmap(greenHeatmap);
 }
 
-void Buddhabrot::generate() {
+int Buddhabrot::generate() {
   // Create threads for each color channel
-  std::thread redThread(&Buddhabrot::generateHeatmap, this, redHeatmap, redIterations);
-  std::thread greenThread(&Buddhabrot::generateHeatmap, this, greenHeatmap, greenIterations);
-  std::thread blueThread(&Buddhabrot::generateHeatmap, this, blueHeatmap, blueIterations);
+  thread redThread(&Buddhabrot::generateHeatmap, this, redHeatmap, redIterations);
+  thread greenThread(&Buddhabrot::generateHeatmap, this, greenHeatmap, greenIterations);
+  thread blueThread(&Buddhabrot::generateHeatmap, this, blueHeatmap, blueIterations);
+
+  // Create a progress reporting thread only if verbose is enabled
+  thread progressThread;
+  if (verbose) {
+    progressThread = thread(&Buddhabrot::reportProgress, this);
+  }
 
   // Wait for all threads to finish
   redThread.join();
   greenThread.join();
   blueThread.join();
 
+  // Notify the progress thread that work is done
+  if (verbose) {
+    progressThread.join();
+  }
+
   // Scale heatmap values to a max color of 255
   scaleHeatmapsToColor();
+
+  // Output heatmaps to ppm
+  return flushToPPM();
 }
 
-void Buddhabrot::flushToPPM(ofstream& outFile) {
-  outFile << "P3\n" << imageWidth << " " << imageHeight << "\n255\n";
+int Buddhabrot::flushToPPM() {
+  ofstream imageOut(filename);
+  if (!imageOut) {
+    return EXIT_FAILURE;
+  }
+
+  imageOut << "P3\n" << imageWidth << " " << imageHeight << "\n255\n";
   for (int row = 0; row < imageHeight; ++row) {
     for (int col = 0; col < imageWidth; ++col) {
-      outFile << redHeatmap[row][col] << " " << greenHeatmap[row][col] << " " << blueHeatmap[row][col] << " ";
+        imageOut << redHeatmap[row][col] << " " << greenHeatmap[row][col] << " " << blueHeatmap[row][col] << " ";
     }
-    outFile << endl;
+    imageOut << endl;
   }
+  imageOut.close();
+  
+  return EXIT_SUCCESS;
 }
 
 void Buddhabrot::allocHeatmap(UINT**& heatmap) {
@@ -108,6 +135,9 @@ void Buddhabrot::generateHeatmap(UINT** heatmap, int iterations) {
         }
       }
     }
+    
+    // Increment the shared iteration count atomically
+    iterationCount++;
   }
 }
 
@@ -118,5 +148,24 @@ void Buddhabrot::scaleHeatmapsToColor() {
       greenHeatmap[row][col] = getColourFromHeatmap(greenHeatmap[row][col]);
       blueHeatmap[row][col] = getColourFromHeatmap(blueHeatmap[row][col]);
     }
+  }
+}
+
+void Buddhabrot::reportProgress() {
+  auto nextReport = high_resolution_clock::now() + seconds(1);
+
+  while (iterationCount < totalIterations) {
+    if (high_resolution_clock::now() >= nextReport) {
+      lock_guard<mutex> lock(progressMutex); // Synchronize output
+      double progress = (static_cast<double>(iterationCount) / totalIterations) * 100;
+      cout << "Progress: " << round(progress) << "%\n";
+      nextReport = high_resolution_clock::now() + seconds(1);
+    }
+  }
+
+  // Print final progress when done
+  {
+    lock_guard<mutex> lock(progressMutex);
+    cout << "Progress: 100%\n";
   }
 }
